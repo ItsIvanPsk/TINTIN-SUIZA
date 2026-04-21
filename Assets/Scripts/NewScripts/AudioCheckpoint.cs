@@ -30,6 +30,9 @@ public class AudioCheckpoint : MonoBehaviour
     {
         if (_audio != null && _audioSource != null)
         {
+            if (_audioSource.clip == _audio && _audioSource.isPlaying)
+                return;
+
             _audioSource.clip = _audio;
             _audioSource.Play();
         }
@@ -41,9 +44,12 @@ public class AudioCheckpoint : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-            Debug.Log("Checkpoint alcanzado: " + other.gameObject.name);
-        if (other.gameObject.CompareTag("Checkpoint"))
+        Debug.Log("Checkpoint alcanzado: " + other.gameObject.name);
+        Debug.Log("Tag del objeto: " + other.gameObject.tag);
+
+        if (other.gameObject.CompareTag("Checkpoint") || other.gameObject.CompareTag("GameController") || other.gameObject.CompareTag("MainCamera")|| other.gameObject.CompareTag("Player"))
         {
+            Debug.Log(" Checkpoint activado por: " + other.gameObject.name);
             LoadAudio();
         }
     }
