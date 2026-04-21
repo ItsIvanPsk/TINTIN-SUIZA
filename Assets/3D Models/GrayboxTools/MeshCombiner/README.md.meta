@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 8bd7bcb4974ea044a9d4da834e798e20
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 364990
+  packageName: Mesh Combiner Window
+  packageVersion: 1.0
+  assetPath: Assets/GrayboxTools/MeshCombiner/README.md
+  uploadId: 873870

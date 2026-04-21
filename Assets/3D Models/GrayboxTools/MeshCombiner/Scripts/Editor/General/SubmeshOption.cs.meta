@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: c509dd2a64ee42679275dc33535d1f4b
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 364990
+  packageName: Mesh Combiner Window
+  packageVersion: 1.0
+  assetPath: Assets/GrayboxTools/MeshCombiner/Scripts/Editor/General/SubmeshOption.cs
+  uploadId: 873870

@@ -1,0 +1,10 @@
+﻿fileFormatVersion: 2
+guid: 96a0b4b8d2dc496b9489f193e60773bd
+timeCreated: 1772560347
+AssetOrigin:
+  serializedVersion: 1
+  productId: 364990
+  packageName: Mesh Combiner Window
+  packageVersion: 1.0
+  assetPath: Assets/GrayboxTools/MeshCombiner/Scripts/Editor/General/CombineOutput.cs
+  uploadId: 873870

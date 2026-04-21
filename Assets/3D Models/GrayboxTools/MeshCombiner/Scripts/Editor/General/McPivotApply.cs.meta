@@ -1,0 +1,10 @@
+﻿fileFormatVersion: 2
+guid: 5ad0977f87d944de91cad09e3c0ffc30
+timeCreated: 1772560314
+AssetOrigin:
+  serializedVersion: 1
+  productId: 364990
+  packageName: Mesh Combiner Window
+  packageVersion: 1.0
+  assetPath: Assets/GrayboxTools/MeshCombiner/Scripts/Editor/General/McPivotApply.cs
+  uploadId: 873870
