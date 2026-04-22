@@ -66,6 +66,7 @@ public class AutoOcclusionCuller : MonoBehaviour
 
     private readonly List<RendererEntry> _entries = new List<RendererEntry>();
     private readonly Plane[] _frustumPlanes = new Plane[6];
+    private const string IgnoredFloorTag = "Suelo";
     private int _frameCounter;
     private int _visibleCount;
 
@@ -99,12 +100,14 @@ public class AutoOcclusionCuller : MonoBehaviour
         _entries.Clear();
         Renderer[] all = FindObjectsByType<Renderer>(FindObjectsSortMode.None);
 
-        int skippedIgnore = 0, skippedOccluder = 0, skippedTarget = 0;
+        int skippedIgnore = 0, skippedOccluder = 0, skippedTarget = 0, skippedTag = 0;
 
         foreach (var r in all)
         {
             if (r == null) continue;
             int bit = 1 << r.gameObject.layer;
+
+            if (HasIgnoredTag(r.gameObject))                  { skippedTag++;      continue; }
 
             if ((_ignoreLayers.value & bit) != 0)               { skippedIgnore++;   continue; }
             bool isOccluder = (_occluderLayers.value & bit) != 0;
@@ -114,7 +117,7 @@ public class AutoOcclusionCuller : MonoBehaviour
             _entries.Add(new RendererEntry { renderer = r });
         }
 
-        Debug.Log($"[OcclusionCuller] Targets: {_entries.Count} | Ignorados: {skippedIgnore} | " +
+        Debug.Log($"[OcclusionCuller] Targets: {_entries.Count} | Ignorados: {skippedIgnore} | Ignorados por tag: {skippedTag} | " +
                   $"Occluders excluidos: {skippedOccluder} | Fuera de target layer: {skippedTarget}");
 
         if (_entries.Count == 0)
@@ -158,11 +161,37 @@ public class AutoOcclusionCuller : MonoBehaviour
             float dist = dir.magnitude;
             if (dist < 0.01f) return false;
 
-            bool blocked = Physics.Raycast(camPos, dir / dist, dist - 0.05f, _occluderLayers);
+            bool blocked = IsBlockedByOccluder(camPos, dir / dist, dist - 0.05f);
             if (_showDebugRays) Debug.DrawRay(camPos, dir, blocked ? Color.red : Color.green, Time.deltaTime);
             if (!blocked) return false;
         }
         return true;
+    }
+
+    private bool IsBlockedByOccluder(Vector3 origin, Vector3 direction, float distance)
+    {
+        RaycastHit[] hits = Physics.RaycastAll(origin, direction, distance, _occluderLayers, QueryTriggerInteraction.Ignore);
+        if (hits == null || hits.Length == 0)
+            return false;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            var hitGo = hits[i].collider != null ? hits[i].collider.gameObject : null;
+            if (hitGo == null) continue;
+
+            if (HasIgnoredTag(hitGo))
+                continue;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool HasIgnoredTag(GameObject go)
+    {
+        if (go == null) return false;
+        return go.CompareTag(IgnoredFloorTag);
     }
 
     private Vector3[] GetSamplePoints(Bounds b)
@@ -204,7 +233,7 @@ public class AutoOcclusionCuller : MonoBehaviour
     private void DiagnoseSetup()
     {
         Renderer[] all = FindObjectsByType<Renderer>(FindObjectsSortMode.None);
-        int onOccluder = 0, onIgnore = 0, wouldTarget = 0, noCollider = 0;
+        int onOccluder = 0, onIgnore = 0, wouldTarget = 0, noCollider = 0, ignoredByTag = 0;
         var breakdown = new Dictionary<string, int>();
 
         foreach (var r in all)
@@ -218,10 +247,12 @@ public class AutoOcclusionCuller : MonoBehaviour
             bool isOccluder = (_occluderLayers.value & bit) != 0;
             bool isIgnored  = (_ignoreLayers.value   & bit) != 0;
             bool inTarget   = _targetLayers.value == -1 || (_targetLayers.value & bit) != 0;
+            bool byTag      = HasIgnoredTag(r.gameObject);
 
             if (isOccluder) { onOccluder++; if (r.GetComponent<Collider>() == null) noCollider++; }
             if (isIgnored) onIgnore++;
-            if (!isIgnored && (!isOccluder || _cullOccludersAlso) && inTarget) wouldTarget++;
+            if (byTag) ignoredByTag++;
+            if (!isIgnored && !byTag && (!isOccluder || _cullOccludersAlso) && inTarget) wouldTarget++;
         }
 
         string bd = "";
@@ -232,6 +263,7 @@ public class AutoOcclusionCuller : MonoBehaviour
             $"  Total renderers           : {all.Length}\n" +
             $"  En layer Occluder         : {onOccluder}\n" +
             $"  En layer Ignore           : {onIgnore}\n" +
+            $"  Ignorados por tag         : {ignoredByTag} (tag='{IgnoredFloorTag}')\n" +
             $"  Serían targets            : {wouldTarget}\n" +
             $"  Occluder layer mask       : {_occluderLayers.value}  (0 = NO asignado en Inspector)\n" +
             $"  Target layer mask         : {_targetLayers.value}  (-1 = Everything)\n" +

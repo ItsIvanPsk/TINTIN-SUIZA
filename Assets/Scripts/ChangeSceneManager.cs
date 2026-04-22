@@ -14,7 +14,7 @@ public class ChangeSceneManager : MonoBehaviour
     [SerializeField] private Image _fadeImage;
 
     [Tooltip("Duración del fade de entrada/salida en segundos.")]
-    [SerializeField] private float _fadeDuration = 0.4f;
+    private float _fadeDuration = 0.4f;
 
     private bool _isLoading = false;
 

@@ -29,6 +29,13 @@ public class AutoHandPlayerFixer : MonoBehaviour
     [Tooltip("Fuerza activar useMovement en AutoHandPlayer.")]
     [SerializeField] private bool _forceEnableMovement = true;
 
+    [Tooltip("Sin inercia: el jugador arranca y frena de forma instantánea al mover/soltar el stick.\n" +
+             "Activa esto para movimiento 1:1 sin deslizamiento.")]
+    [SerializeField] private bool _noInertia = true;
+
+    [Tooltip("Velocidad máxima de movimiento (m/s).")]
+    [SerializeField] private float _maxMoveSpeed = 2.3f;
+
     [Tooltip("Tipo de rotación: Snap (giro por pasos) o Smooth (giro continuo).")]
     [SerializeField] private RotationType _rotationType = RotationType.snap;
 
@@ -106,11 +113,24 @@ public class AutoHandPlayerFixer : MonoBehaviour
             _player.useMovement = true;
         }
 
-        _player.rotationType   = _rotationType;
-        _player.snapTurnAngle  = _snapTurnAngle;
+        _player.maxMoveSpeed    = _maxMoveSpeed;
+        _player.rotationType    = _rotationType;
+        _player.snapTurnAngle   = _snapTurnAngle;
         _player.smoothTurnSpeed = _smoothTurnSpeed;
 
-        Debug.Log($"[AutoHandPlayerFixer] Movimiento configurado: rotationType={_rotationType}, " +
+        if (_noInertia)
+        {
+            // Aceleración natural → no se toca, usa el valor del Inspector
+            // Drag altísimo → para en seco al soltar el stick
+            _player.groundedDrag = 999999f;
+            // Rigidbody drag a 0 para que no luche contra la aceleración
+            var rb = _player.GetComponent<Rigidbody>();
+            if (rb != null) rb.linearDamping = 0f;
+
+            Debug.Log("[AutoHandPlayerFixer] Modo sin inercia: aceleración natural, frenado instantáneo.");
+        }
+
+        Debug.Log($"[AutoHandPlayerFixer] Movimiento: speed={_maxMoveSpeed}, rotationType={_rotationType}, " +
                   $"snapAngle={_snapTurnAngle}°, smoothSpeed={_smoothTurnSpeed}°/s");
     }
 
@@ -185,14 +205,16 @@ public class AutoHandPlayerFixer : MonoBehaviour
         Debug.Log(
             $"[AutoHandPlayerFixer] ══ DIAGNÓSTICO ══\n" +
             $"  useMovement       : {_player.useMovement}\n" +
+            $"  noInertia         : {_noInertia}\n" +
+            $"  maxMoveSpeed      : {_player.maxMoveSpeed}\n" +
+            $"  moveAcceleration  : {_player.moveAcceleration}\n" +
+            $"  groundedDrag      : {_player.groundedDrag}\n" +
             $"  rotationType      : {_player.rotationType}\n" +
             $"  snapTurnAngle     : {_player.snapTurnAngle}\n" +
             $"  smoothTurnSpeed   : {_player.smoothTurnSpeed}\n" +
-            $"  maxMoveSpeed      : {_player.maxMoveSpeed}\n" +
-            $"  groundedDrag      : {_player.groundedDrag}\n" +
             $"  Rigidbody drag    : {(rb != null ? rb.linearDamping.ToString() : "sin Rigidbody")}\n" +
             $"  Rigidbody angDrag : {(rb != null ? rb.angularDamping.ToString() : "sin Rigidbody")}\n" +
-            $"  InputActionAsset  : {(_inputActionAsset != null ? _inputActionAsset.name : "no asignado (usará reflexión)")}"
+            $"  InputActionAsset  : {(_inputActionAsset != null ? _inputActionAsset.name : "no asignado (usará reflexión)")}"  
         );
 
         // Comprobar si las acciones relevantes están habilitadas
